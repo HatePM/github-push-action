@@ -73,6 +73,7 @@ else
     if [ -n "$INPUT_PUSH_FAILS_NOTIFY_SCRIPT" ]; then
         eval "$INPUT_PUSH_FAILS_NOTIFY_SCRIPT" || echo "Notify script execution failed"
     fi
+    echo "\n"
     echo "Push failed, trying rebase..."
     if git pull --rebase > /dev/null 2>&1; then
         echo "Rebase successful, trying push again..."
