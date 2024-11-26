@@ -9,6 +9,7 @@ INPUT_TAGS=${INPUT_TAGS:-false}
 INPUT_PUSH_ONLY_TAGS=${INPUT_PUSH_ONLY_TAGS:-false}
 INPUT_DIRECTORY=${INPUT_DIRECTORY:-"."}
 INPUT_PUSH_TO_SUBMODULES=${INPUT_PUSH_TO_SUBMODULES:-""}
+INPUT_PUSH_FAILS_NOTIFY_SCRIPT=${INPUT_PUSH_FAILS_NOTIFY_SCRIPT:-""}
 _ATOMIC_OPTION=""
 _FORCE_OPTION=""
 REPOSITORY=${INPUT_REPOSITORY:-$GITHUB_REPOSITORY}
@@ -68,6 +69,10 @@ GIT_PUSH_CMD="git push $ADDITIONAL_PARAMETERS $_INPUT_PUSH_TO_SUBMODULES $_ATOMI
 if eval "$GIT_PUSH_CMD" > /dev/null 2>&1; then
     : # Push successful, do noting
 else
+    echo "Push failed, executing notify script..."
+    if [ -n "$INPUT_PUSH_FAILS_NOTIFY_SCRIPT" ]; then
+        eval "$INPUT_PUSH_FAILS_NOTIFY_SCRIPT" || echo "Notify script execution failed"
+    fi
     echo "Push failed, trying rebase..."
     if git pull --rebase > /dev/null 2>&1; then
         echo "Rebase successful, trying push again..."

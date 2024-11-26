@@ -271,6 +271,34 @@ jobs:
           force_with_lease: true
 ```
 
+An Example workflow to send notification when push fails:
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          token: ${{ secrets.PAT_TOKEN }}
+      - name: Commit files
+        run: |
+          git config --local user.email "test@test.com"
+          git config --local user.name "Test"
+          git commit -a -m "Add changes"
+      - name: Push changes
+        uses: HatePM/github-push-action@master
+        with:
+          github_token: ${{ secrets.PAT_TOKEN }}
+          repository: Test/test
+          push_fails_notify_script: |
+             curl -X POST https://xx.com \
+                  -H 'Content-Type: application/json' \
+                  -d '{"content": "push fails"}'
+```
+
+
 ### Inputs
 
 | name               | value   | default               | description                                                                                                                                                                                                                                                                                                          |
@@ -286,6 +314,7 @@ jobs:
 | tags               | boolean | false                 | Determines if `--tags` is used.                                                                                                                                                                                                                                                                                      |
 | directory          | string  | '.'                   | Directory to change to before pushing.                                                                                                                                                                                                                                                                               |
 | repository         | string  | ''                    | Repository name. <br /> Default or empty repository name represents <br /> current github repository. <br /> If you want to push to other repository, <br /> you should make a [personal access token](https://github.com/settings/tokens) <br /> and use it as the `github_token` input.                            |
+| push_fails_notify_script | string | ''                 | Executing notify script if push fails                                                                                                                                                                                                                                                                              |
 
 ## Troubleshooting
 
