@@ -9,6 +9,7 @@ INPUT_TAGS=${INPUT_TAGS:-false}
 INPUT_PUSH_ONLY_TAGS=${INPUT_PUSH_ONLY_TAGS:-false}
 INPUT_DIRECTORY=${INPUT_DIRECTORY:-"."}
 INPUT_PUSH_TO_SUBMODULES=${INPUT_PUSH_TO_SUBMODULES:-""}
+INPUT_PUSH_FAILS_NOTIFY_SCRIPT=${INPUT_PUSH_FAILS_NOTIFY_SCRIPT:-""}
 _ATOMIC_OPTION=""
 _FORCE_OPTION=""
 REPOSITORY=${INPUT_REPOSITORY:-$GITHUB_REPOSITORY}
@@ -62,4 +63,24 @@ if ${INPUT_FORCE_WITH_LEASE} && ${INPUT_TAGS}; then
   _ATOMIC_OPTION=""
 fi
 
-git push $ADDITIONAL_PARAMETERS $_INPUT_PUSH_TO_SUBMODULES $_ATOMIC_OPTION --follow-tags $_FORCE_OPTION $_TAGS;
+GIT_PUSH_CMD="git push $ADDITIONAL_PARAMETERS $_INPUT_PUSH_TO_SUBMODULES $_ATOMIC_OPTION --follow-tags $_FORCE_OPTION $_TAGS"
+
+# Execute git push command and capture return value
+if eval "$GIT_PUSH_CMD" > /dev/null 2>&1; then
+    : # Push successful, do noting
+else
+    echo "Push failed, executing notify script..."
+    if [ -n "$INPUT_PUSH_FAILS_NOTIFY_SCRIPT" ]; then
+        eval "$INPUT_PUSH_FAILS_NOTIFY_SCRIPT" || echo "Notify script execution failed"
+    fi
+    echo "\n"
+    echo "Push failed, trying rebase..."
+    if git pull --rebase > /dev/null 2>&1; then
+        echo "Rebase successful, trying push again..."
+        eval "$GIT_PUSH_CMD" || exit 1
+    else
+        echo "Rebase failed"
+        git rebase --abort
+        exit 1
+    fi
+fi

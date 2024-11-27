@@ -1,4 +1,6 @@
-# GitHub Action for GitHub Push
+# GitHub Action for GitHub Push(with rebase)
+
+This is a slight modification of the [ad-m/github-push-action](https://github.com/ad-m/github-push-action) action.
 
 The GitHub Actions for pushing local changes to GitHub using an authorized GitHub token.
 
@@ -85,7 +87,7 @@ jobs:
         git config --local user.name "github-actions[bot]"
         git commit -a -m "Add changes"
     - name: Push changes
-      uses: ad-m/github-push-action@master
+      uses: HatePM/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         branch: ${{ github.ref }}
@@ -111,7 +113,7 @@ jobs:
         git config --local user.name "github-actions[bot]"
         git commit -a -m "Add changes"
     - name: Push changes
-      uses: ad-m/github-push-action@master
+      uses: HatePM/github-push-action@master
       with:
         branch: ${{ github.head_ref }}
 ```
@@ -133,7 +135,7 @@ jobs:
         git config --local user.name "github-actions[bot]"
         git commit -a -m "Add changes"
     - name: Push changes
-      uses: ad-m/github-push-action@master
+      uses: HatePM/github-push-action@master
       with:
         force_with_lease: true
 ```
@@ -163,7 +165,7 @@ jobs:
         git config --local user.name "Test"
         git commit -a -m "Add changes"
     - name: Push changes
-      uses: ad-m/github-push-action@master
+      uses: HatePM/github-push-action@master
       with:
         github_token: ${{ env.TOKEN }}
 ```
@@ -186,7 +188,7 @@ jobs:
         git config --local user.name "Test"
         git commit -a -m "Add changes"
     - name: Push changes
-      uses: ad-m/github-push-action@master
+      uses: HatePM/github-push-action@master
       with:
         github_token: ${{ secrets.PAT_TOKEN }}
         repository: Test/test
@@ -212,7 +214,7 @@ jobs:
         git tag $GITHUB_REF_NAME
         git commit -a -m "Add changes"
     - name: Push changes
-      uses: ad-m/github-push-action@master
+      uses: HatePM/github-push-action@master
       with:
         force: true
         tags: true
@@ -238,7 +240,7 @@ jobs:
         git config --local user.name "github-actions[bot]"
         git commit -a -m "Add changes"
     - name: Push changes
-      uses: ad-m/github-push-action@master
+      uses: HatePM/github-push-action@master
       with:
         ssh: true
         branch: ${{ github.ref }}
@@ -262,12 +264,40 @@ jobs:
           git config --local user.name "Test"
           git commit -a -m "Add changes"
       - name: Push changes
-        uses: ad-m/github-push-action@master
+        uses: HatePM/github-push-action@master
         with:
           github_token: ${{ secrets.PAT_TOKEN }}
           repository: Test/test
           force_with_lease: true
 ```
+
+An Example workflow to send notification when push fails:
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          token: ${{ secrets.PAT_TOKEN }}
+      - name: Commit files
+        run: |
+          git config --local user.email "test@test.com"
+          git config --local user.name "Test"
+          git commit -a -m "Add changes"
+      - name: Push changes
+        uses: HatePM/github-push-action@master
+        with:
+          github_token: ${{ secrets.PAT_TOKEN }}
+          repository: Test/test
+          push_fails_notify_script: |
+             curl -X POST https://xx.com \
+                  -H 'Content-Type: application/json' \
+                  -d '{"content": "push fails"}'
+```
+
 
 ### Inputs
 
@@ -284,6 +314,7 @@ jobs:
 | tags               | boolean | false                 | Determines if `--tags` is used.                                                                                                                                                                                                                                                                                      |
 | directory          | string  | '.'                   | Directory to change to before pushing.                                                                                                                                                                                                                                                                               |
 | repository         | string  | ''                    | Repository name. <br /> Default or empty repository name represents <br /> current github repository. <br /> If you want to push to other repository, <br /> you should make a [personal access token](https://github.com/settings/tokens) <br /> and use it as the `github_token` input.                            |
+| push_fails_notify_script | string | ''                 | Executing notify script if push fails                                                                                                                                                                                                                                                                              |
 
 ## Troubleshooting
 

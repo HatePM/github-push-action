@@ -46,6 +46,10 @@ inputs:
     description: 'Directory to change to before pushing.'
     required: false
     default: '.'
+  push_fails_notify_script:
+    description: 'Executing notify script if the action push fails'
+    required: false
+    default: ''
 runs:
   using: 'node20'
   main: 'start.js'
