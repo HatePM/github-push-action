@@ -78,6 +78,7 @@ else
     if git pull --rebase > /dev/null 2>&1; then
         echo "Rebase successful, trying push again..."
         eval "$GIT_PUSH_CMD" || exit 1
+        echo "Push successful"
     else
         echo "Rebase failed"
         git rebase --abort
